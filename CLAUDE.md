@@ -30,6 +30,11 @@ modeles/
 resultats/
   optuna.db                    # études Optuna (SQLite, reprend si interrompu)
   {split}_lstm_1l_predictions.parquet
+
+strategies/
+  vol_targeting.ipynb          # stratégie Volatility Targeting (CMM + sizing vol) — grid search + backtest
+  vol_targeting_avance.ipynb   # extensions : cap de position, hystérésis CMM, tests DM / Mann-Whitney
+  regime.ipynb                 # stratégie Régime (RSI si calme, CMM si tendu) — D.2.3
 ```
 
 ## Ordre d'exécution
@@ -38,7 +43,21 @@ build_crypto_parquet.py        # une seule fois par asset, ou pour mettre à jou
 create_crypto_features.py      # régénère les parquets features
 hyperparametres.ipynb          # entraînement + sélection d'hyperparamètres
 inference.ipynb                # prédictions et métriques
+quickrun.py                    # (optionnel) entraînement rapide sans Optuna pour un premier aperçu
+
+# Backtests (nécessitent les prédictions dans resultats/)
+strategies/vol_targeting.ipynb          # stratégie de base
+strategies/vol_targeting_avance.ipynb   # améliorations
+strategies/regime.ipynb                 # stratégie régime RSI+CMM
 ```
+
+## API Backtester
+Les notebooks de stratégies utilisent `Backtester/Backtester.py` :
+- `compute_backtest(pos_df, perf_df, ...)` — positions × rendements log (décimaux)
+- `position_lag_value=1` — lag 1 barre (réaliste, pas de lookahead)
+- `check_index=True` — réindexe automatiquement pos sur ret (timezone-safe)
+- `transaction_costs_bps=5.0` — coûts futures crypto taker (~5 bps/side)
+- Prédictions chargées depuis `resultats/{split}_lstm_1l_predictions.parquet` (colonnes = PAIRS)
 
 ## Conventions
 - Tous les chemins sont relatifs à `ROOT = Path(__file__).parent.parent` — pas de chemins absolus
